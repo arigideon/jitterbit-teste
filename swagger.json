@@ -1,0 +1,154 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Jitterbit Challenge API",
+    "version": "1.0.0",
+    "description": "API REST para gerenciamento de pedidos com transformação de dados (PT-BR -> EN). Integração com MongoDB Atlas."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor Local"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "OrderInputPT": {
+        "type": "object",
+        "required": ["numeroPedido", "valorTotal", "dataCriacao", "items"],
+        "properties": {
+          "numeroPedido": { "type": "string", "example": "v10089015vdb-01" },
+          "valorTotal": { "type": "number", "example": 10000 },
+          "dataCriacao": { "type": "string", "format": "date-time", "example": "2023-07-19T12:24:11.529Z" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idItem": { "type": "string", "example": "2434" },
+                "quantidadeItem": { "type": "number", "example": 1 },
+                "valorItem": { "type": "number", "example": 1000 }
+              }
+            }
+          }
+        }
+      },
+      "OrderInputEN": {
+        "type": "object",
+        "required": ["orderId", "value", "creationDate", "items"],
+        "properties": {
+          "orderId": { "type": "string", "example": "v10089015vdb" },
+          "value": { "type": "number", "example": 10000 },
+          "creationDate": { "type": "string", "format": "date-time", "example": "2023-07-19T12:24:11.529Z" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "productId": { "type": "number", "example": 2434 },
+                "quantity": { "type": "number", "example": 1 },
+                "price": { "type": "number", "example": 1000 }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/order": {
+      "post": {
+        "summary": "Cria um novo pedido",
+        "description": "Recebe o pedido no formato original (PT-BR), transforma e salva no banco (EN).",
+        "requestBody": {
+          "description": "JSON no formato original do legado.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderInputPT"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Pedido criado com sucesso." },
+          "400": { "description": "Dados inválidos ou faltando campos." },
+          "409": { "description": "Pedido duplicado (orderId já existe)." }
+        }
+      }
+    },
+    "/order/list": {
+      "get": {
+        "summary": "Lista todos os pedidos",
+        "description": "Retorna todos os pedidos armazenados no banco de dados.",
+        "responses": {
+          "200": {
+            "description": "Lista retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/OrderInputEN" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "schema": { "type": "string" },
+          "required": true,
+          "description": "ID do pedido (ex: v10089015vdb)"
+        }
+      ],
+      "get": {
+        "summary": "Busca pedido por ID",
+        "responses": {
+          "200": {
+            "description": "Pedido encontrado.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/OrderInputEN" } }
+            }
+          },
+          "404": { "description": "Pedido não encontrado." }
+        }
+      },
+      "put": {
+        "summary": "Atualiza um pedido existente",
+        "description": "Aceita atualização HÍBRIDA: você pode enviar o JSON original (PT-BR) para ser reprocessado ou o JSON já transformado (EN).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/OrderInputPT" },
+                  { "$ref": "#/components/schemas/OrderInputEN" }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Pedido atualizado com sucesso." },
+          "400": { "description": "Corpo inválido ou formato desconhecido." },
+          "404": { "description": "Pedido não encontrado para atualização." }
+        }
+      },
+      "delete": {
+        "summary": "Remove um pedido",
+        "description": "Exclui o registro do banco de dados baseado no ID.",
+        "responses": {
+          "200": { "description": "Pedido removido com sucesso." },
+          "404": { "description": "Pedido não encontrado." }
+        }
+      }
+    }
+  }
+}
