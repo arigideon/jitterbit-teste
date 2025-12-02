@@ -1,0 +1,213 @@
+{
+	"info": {
+		"_postman_id": "13ff873d-0ca6-4b24-8188-bd5818b35fa0",
+		"name": "Jitterbit Challenge API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38357916"
+	},
+	"item": [
+		{
+			"name": "Create Order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verifica se o status é 201 (Created)\r",
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"// Pega o ID do pedido criado e salva numa variável global\r",
+							"var jsonData = pm.response.json();\r",
+							"if (jsonData.order && jsonData.order.orderId) {\r",
+							"    pm.globals.set(\"created_order_id\", jsonData.order.orderId);\r",
+							"    console.log(\"ID salvo: \" + jsonData.order.orderId);\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Deve retornar erro de conflito (409)\", function () {\r",
+							"    pm.response.to.have.status(409);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"numeroPedido\": \"vtesteordercreationdb-02\",\r\n  \"valorTotal\": 1200,\r\n  \"dataCriacao\": \"2025-12-22T12:24:11.529Z\",\r\n  \"items\": [\r\n    {\r\n      \"idItem\": \"123456\",\r\n      \"quantidadeItem\": 12,\r\n      \"valorItem\": 100\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/order",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Order by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Verifica se o ID retornado é o mesmo que pedimos\r",
+							"var jsonData = pm.response.json();\r",
+							"pm.test(\"Retornou o ID correto\", function () {\r",
+							"    pm.expect(jsonData.orderId).to.eql(pm.globals.get(\"created_order_id\"));\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/order/{{created_order_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"order",
+						"{{created_order_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Orders List",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/order/list",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"order",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Order Update",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"value\": 1300\r\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/order/{{order_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"order",
+						"{{order_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Order",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/order/{{order_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"order",
+						"{{order_id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": ""
+		},
+		{
+			"key": "order_id",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
